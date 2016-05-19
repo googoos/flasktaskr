@@ -1,9 +1,13 @@
+"""Forms module."""
+
 from flask_wtf import Form
 from wtforms import StringField, DateField, IntegerField, SelectField
 from wtforms.validators import DataRequired
 
 
 class AddTaskForm(Form):
+    """Add task forms class."""
+
     task_id = IntegerField()
     name = StringField('Task Name', validators=[DataRequired()])
     due_date = DateField(
