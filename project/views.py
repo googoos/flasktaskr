@@ -40,6 +40,7 @@ def logout():
 
 @app.route('/', methods=['GET', 'POST'])
 def login():
+    "Login page."
     if request.method == 'POST':
         if request.form['username'] != app.config['USERNAME'] or \
                 request.form['password'] != app.config['PASSWORD']:
@@ -107,9 +108,10 @@ def new_task():
 
 
 # mark task as complete
-@app.route('/complete/<int:task_id/')
+@app.route('/complete/<int:task_id>/')
 @login_required
 def complete(task_id):
+    """Mark task as complete."""
     g.db = connect_db()
     g.db.execute(
         'update tasks set status = 0 where task_id'+str(task_id)
@@ -124,6 +126,7 @@ def complete(task_id):
 @app.route('/delete/<int:task_id>/')
 @login_required
 def delete_entry(task_id):
+    """Delete task."""
     g.db = connect_db()
     g.db.execute('delete from task where task_id='+str(task_id))
     g.db.commit()
