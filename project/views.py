@@ -108,7 +108,7 @@ def new_task():
         g.db.commit()
         g.db.close()
         flash('New entry was successfully posted. Thanks.')
-        return redirect(url_for('task'))
+        return redirect(url_for('tasks'))
 
 
 # mark task as complete
@@ -118,7 +118,7 @@ def complete(task_id):
     """Mark task as complete."""
     g.db = connect_db()
     g.db.execute(
-        'update tasks set status = 0 where task_id'+str(task_id)
+        'update tasks set status = 0 where task_id='+str(task_id)
     )
     g.db.commit()
     g.db.close()
@@ -132,7 +132,7 @@ def complete(task_id):
 def delete_entry(task_id):
     """Delete task."""
     g.db = connect_db()
-    g.db.execute('delete from task where task_id='+str(task_id))
+    g.db.execute('delete from tasks where task_id='+str(task_id))
     g.db.commit()
     g.db.close()
     flash('The task was deleted.')
