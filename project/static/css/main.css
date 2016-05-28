@@ -64,8 +64,10 @@ h2 {
 }
 
 .error {
-  background: #F0D6D6;
-  padding: 0.5em;
+  color: red;
+  fornt-size: .8em;
+  background: #FFFFFF;
+  /*padding: 0.5em; */
 }
 
 .datagrid table {
