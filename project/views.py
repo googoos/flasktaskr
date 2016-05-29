@@ -61,7 +61,7 @@ def login():
             if user is not None and user.password == request.form['password']:
                 session['logged_in'] = True
                 session['user_id'] = user.id
-                flash('Welcome')
+                flash('Welcome!')
                 return redirect(url_for('tasks'))
             else:
                 error = 'Invalid username or password.'
@@ -89,7 +89,7 @@ def register():
                 flash('Thanks for registering. Please login.')
                 return redirect(url_for('login'))
             except IntegrityError:
-                error = 'That username or email already exist.'
+                error = 'That username and/or email already exist.'
                 return render_template('register.html', form=form, error=error)
     return render_template('register.html', form=form, error=error)
 
