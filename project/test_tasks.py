@@ -1,14 +1,22 @@
+# project/test_tasks.py
+
+
 import os
 import unittest
 
 from views import app, db
 from _config import basedir
-from models import User
+from models import Task, User
 
 TEST_DB = 'test.db'
 
 
-class AllTests(unittest.TestCase):
+class TasksTests(unittest.TestCase):
+
+    ############################
+    #### setup and teardown ####
+    ############################
+
     # executed prior to each test
     def setUp(self):
         app.config['TESTING'] = True
@@ -18,12 +26,16 @@ class AllTests(unittest.TestCase):
         self.app = app.test_client()
         db.create_all()
 
-    # execute after each test
+    # executed after each test
     def tearDown(self):
         db.session.remove()
         db.drop_all()
 
-    # helper methods
+
+    ########################
+    #### helper methods ####
+    ########################
+
     def login(self, name, password):
         return self.app.post('/', data=dict(
             name=name, password=password), follow_redirects=True)
@@ -31,8 +43,7 @@ class AllTests(unittest.TestCase):
     def register(self, name, email, password, confirm):
         return self.app.post(
             'register/',
-            data=dict(name=name, email=email, password=password,
-                      confirm=confirm),
+            data=dict(name=name, email=email, password=password, confirm=confirm),
             follow_redirects=True
         )
 
@@ -53,8 +64,21 @@ class AllTests(unittest.TestCase):
             status='1'
         ), follow_redirects=True)
 
+    def create_admin_user(self):
+        new_user = User(
+            name='Superman',
+            email='admin@realpython.com',
+            password='allpowerful',
+            role='admin'
+        )
+        db.session.add(new_user)
+        db.session.commit()
 
-    # each test should start with 'test'
+
+    ###############
+    #### tests ####
+    ###############
+
     def test_logged_in_users_can_access_tasks_page(self):
         self.register(
             'Fletcher', 'fletcher@realpython.com', 'python101', 'python101'
@@ -96,7 +120,7 @@ class AllTests(unittest.TestCase):
         self.app.get('tasks/', follow_redirects=True)
         self.create_task()
         response = self.app.get("complete/1/", follow_redirects=True)
-        self.assertIn(b'The task was marked as complete. Nice.', response.data)
+        self.assertIn(b'The task is complete. Nice.', response.data)
 
     def test_users_can_delete_tasks(self):
         self.create_user('Michael', 'michael@realpython.com', 'python')
@@ -106,21 +130,84 @@ class AllTests(unittest.TestCase):
         response = self.app.get("delete/1/", follow_redirects=True)
         self.assertIn(b'The task was deleted.', response.data)
 
-    def test_users_cannot_complete_tasks_that_are_not_created_by_them(
-            self):
+    def test_users_cannot_complete_tasks_that_are_not_created_by_them(self):
         self.create_user('Michael', 'michael@realpython.com', 'python')
         self.login('Michael', 'python')
         self.app.get('tasks/', follow_redirects=True)
         self.create_task()
         self.logout()
-        self.create_user('Fletcher', 'fletcher@realpython.com',
-                         'python101')
+        self.create_user('Fletcher', 'fletcher@realpython.com', 'python101')
         self.login('Fletcher', 'python101')
         self.app.get('tasks/', follow_redirects=True)
         response = self.app.get("complete/1/", follow_redirects=True)
         self.assertNotIn(
             b'The task is complete. Nice.', response.data
         )
+        self.assertIn(
+            b'You can only update tasks that belong to you.', response.data
+        )
+
+    def test_users_cannot_delete_tasks_that_are_not_created_by_them(self):
+        self.create_user('Michael', 'michael@realpython.com', 'python')
+        self.login('Michael', 'python')
+        self.app.get('tasks/', follow_redirects=True)
+        self.create_task()
+        self.logout()
+        self.create_user('Fletcher', 'fletcher@realpython.com', 'python101')
+        self.login('Fletcher', 'python101')
+        self.app.get('tasks/', follow_redirects=True)
+        response = self.app.get("delete/1/", follow_redirects=True)
+        self.assertIn(
+            b'You can only delete tasks that belong to you.', response.data
+        )
+
+    def test_admin_users_can_complete_tasks_that_are_not_created_by_them(self):
+        self.create_user('Michael', 'michael@realpython.com', 'python')
+        self.login('Michael', 'python')
+        self.app.get('tasks/', follow_redirects=True)
+        self.create_task()
+        self.logout()
+        self.create_admin_user()
+        self.login('Superman', 'allpowerful')
+        self.app.get('tasks/', follow_redirects=True)
+        response = self.app.get("complete/1/", follow_redirects=True)
+        self.assertNotIn(
+            b'You can only update tasks that belong to you.', response.data
+        )
+
+    def test_admin_users_can_delete_tasks_that_are_not_created_by_them(self):
+        self.create_user('Michael', 'michael@realpython.com', 'python')
+        self.login('Michael', 'python')
+        self.app.get('tasks/', follow_redirects=True)
+        self.create_task()
+        self.logout()
+        self.create_admin_user()
+        self.login('Superman', 'allpowerful')
+        self.app.get('tasks/', follow_redirects=True)
+        response = self.app.get("delete/1/", follow_redirects=True)
+        self.assertNotIn(
+            b'You can only delete tasks that belong to you.', response.data
+        )
+
+    def test_string_reprsentation_of_the_task_object(self):
+
+        from datetime import date
+        db.session.add(
+            Task(
+                "Run around in circles",
+                date(2015, 1, 22),
+                10,
+                date(2015, 1, 23),
+                1,
+                1
+            )
+        )
+
+        db.session.commit()
+
+        tasks = db.session.query(Task).all()
+        for task in tasks:
+            self.assertEqual(task.name, 'Run around in circles')
 
 
 if __name__ == "__main__":
