@@ -142,10 +142,15 @@ def new_task():
 def complete(task_id):
     """Mark task as complete."""
     new_id = task_id
-    db.session.query(Task).filter_by(task_id=new_id).update({"status": "0"})
-    db.session.commit()
-    flash('The task was marked as complete. Nice.')
-    return redirect(url_for('tasks'))
+    task = db.session.query(Task).filter_by(task_id=new_id)
+    if session['user_id'] == task.first().user_id:
+        task.update({"status": "0"})
+        db.session.commit()
+        flash('The task was marked as complete. Nice.')
+        return redirect(url_for('tasks'))
+    else:
+        flash('You can only update task that belong to you.')
+        return redirect(url_for('task'))
 
 
 # delete task
@@ -154,10 +159,15 @@ def complete(task_id):
 def delete_entry(task_id):
     """Delete task."""
     new_id = task_id
-    db.session.query(Task).filter_by(task_id=new_id).delete()
-    db.session.commit()
-    flash('The task was deleted. Why not add a new one?')
-    return redirect(url_for('tasks'))
+    task = db.session.query(Task).filter_by(task_id=new_id)
+    if session['user_id'] == task.first().user_id:
+        task.delete()
+        db.session.commit()
+        flash('The task was deleted. Why not add a new one?')
+        return redirect(url_for('tasks'))
+    else:
+        flash('You can only delete tasks that belong to you.')
+        return redirect(url_for('tasks'))
 
 
 def flash_errors(form):
