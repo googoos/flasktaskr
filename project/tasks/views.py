@@ -48,24 +48,25 @@ def tasks():
     )
 
 
-@tasks_blueprint.route('/add/', methods['GET', 'POST'])
-@rlogin_required
+@tasks_blueprint.route('/add/', methods=['GET', 'POST'])
+@login_required
 def new_task():
     error = None
     form = AddTaskForm(request.form)
     if request.method == 'POST':
-        new_task = Task(
-            form.name.data,
-            form.due_date.data,
-            form.priority.data,
-            datetime.datetime.utcnow(),
-            '1',
-            session['user_id']
-        )
-        db.session.add(new_task)
-        db.session.commit()
-        flash('New entry was successfully posted. Thanks.')
-        return redirect(url_for('tasks.tasks'))
+        if form.validate_on_submit():
+            new_task = Task(
+                form.name.data,
+                form.due_date.data,
+                form.priority.data,
+                datetime.datetime.utcnow(),
+                '1',
+                session['user_id']
+            )
+            db.session.add(new_task)
+            db.session.commit()
+            flash('New entry was successfully posted. Thanks.')
+            return redirect(url_for('tasks.tasks'))
     return render_template(
         'tasks.html',
         form=form,
@@ -80,9 +81,25 @@ def new_task():
 def complete(task_id):
     new_id = task_id
     task = db.session.query(Task).filter_by(task_id=new_id)
-    if session['user_id'] == task.first().user_id or
-    session['role'] == "admin":
+    if session['user_id'] == task.first().user_id or session['role'] == \
+            "admin":
+        task.update({"status": "0"})
+        db.session.commit()
+        flash('The task is complete. Nice.')
+        return redirect(url_for('tasks.tasks'))
+
+
+@tasks_blueprint.route('/delete/<int:task_id>/')
+@login_required
+def delete_entry(task_id):
+    new_id = task_id
+    task = db.session.query(Task).filter_by(task_id=new_id)
+    if session['user_id'] == task.first().user_id or session['role'] == \
+            "admin":
         task.delete()
         db.session.commit()
         flash('The task was deleted. Why not add a new one?')
+        return redirect(url_for('tasks.tasks'))
+    else:
+        flash('You can only delete tasks that  belong to you.')
         return redirect(url_for('tasks.tasks'))

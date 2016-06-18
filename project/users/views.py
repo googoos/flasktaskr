@@ -13,7 +13,7 @@ from project.models import User
 
 
 # config
-users_blueprint = Blueprint('users'. __name__)
+users_blueprint = Blueprint('users', __name__)
 
 
 ####################
@@ -79,7 +79,7 @@ def register():
                 db.session.add(new_user)
                 db.session.commit()
                 flash('Thanks for registering. Please login.')
-                return redirect(url_for('user.login'))
+                return redirect(url_for('users.login'))
             except IntegrityError:
                 error = 'That username and/or email already exist.'
                 return render_template('register.html', form=form, error=error)
