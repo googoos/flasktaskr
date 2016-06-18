@@ -4,9 +4,9 @@
 import os
 import unittest
 
-from views import app, db
-from _config import basedir
-from models import Task, User
+from project import app, db
+from project._config import basedir
+from project.models import Task, User
 
 TEST_DB = 'test.db'
 
@@ -43,7 +43,8 @@ class TasksTests(unittest.TestCase):
     def register(self, name, email, password, confirm):
         return self.app.post(
             'register/',
-            data=dict(name=name, email=email, password=password, confirm=confirm),
+            data=dict(
+                name=name, email=email, password=password, confirm=confirm),
             follow_redirects=True
         )
 

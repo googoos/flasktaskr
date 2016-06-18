@@ -22,7 +22,7 @@ def login_required(test):
             return test(*args, **kwargs)
         else:
             flash('You need to login first.')
-            return redirect(url_for('user.login'))
+            return redirect(url_for('users.login'))
     return wrap
 
 
@@ -76,7 +76,7 @@ def new_task():
     )
 
 
-@tasks_blueprint.route('/complete/<int:task_id>')
+@tasks_blueprint.route('/complete/<int:task_id>/')
 @login_required
 def complete(task_id):
     new_id = task_id
@@ -86,6 +86,9 @@ def complete(task_id):
         task.update({"status": "0"})
         db.session.commit()
         flash('The task is complete. Nice.')
+        return redirect(url_for('tasks.tasks'))
+    else:
+        flash('You can only update tasks that belong to you.')
         return redirect(url_for('tasks.tasks'))
 
 
@@ -101,5 +104,5 @@ def delete_entry(task_id):
         flash('The task was deleted. Why not add a new one?')
         return redirect(url_for('tasks.tasks'))
     else:
-        flash('You can only delete tasks that  belong to you.')
+        flash('You can only delete tasks that belong to you.')
         return redirect(url_for('tasks.tasks'))
