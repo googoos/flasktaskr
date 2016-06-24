@@ -81,6 +81,15 @@ class APITests(unittest.TestCase):
         self.assertIn(b'Run around in circles', response.data)
         self.assertIn(b'Purchase Real Python', response.data)
 
+    def test_resource_endpoint_returns_correct_data(self):
+        """Test resource endpoint returns correct data."""
+        self.add_tasks()
+        response = self.app.get('api/v1/tasks/2', follow_redirects=True)
+        self.assertEquals(response.status_code, 200)
+        self.assertEquals(response.mimetype, 'application/json')
+        self.assertIn(b'Purchase Real Python', response.data)
+        self.assertNotIn(b'Run around in circles', response.data)
+
 
 if __name__ == "__main__":
     unittest.main()
